@@ -28,8 +28,8 @@ def find_outliers(point_cloud, neighbours = 1000, std_ratio = 3.0):
 
 
 if __name__ == "__main__":
-    plik = 'clouds\merged.las'
-    point_cloud = las_to_o3d(plik)
+    file = 'clouds\merged.las'
+    point_cloud = las_to_o3d(file)
     o3d.visualization.draw_geometries([point_cloud], window_name = "Point cloud")
 
     filtered_point_cloud, outliers = find_outliers(point_cloud)
