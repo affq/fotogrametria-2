@@ -1,0 +1,8 @@
+na 3 aplikacja która wczytuje chmury punktow do formatu open3d, wykonuje filtracje oraz downsampling
+na 4 to co na 3 + orientacja maetodą target based i icp
+na 5 poisson i ball pivoting do generowania modeli 3d
+
+skriny pokazujące rezultaty tych konkretnych etapów
+na połączonej a jak się nie uda to na podstawie jednej
+
+0.5 25cm 10cm potestować

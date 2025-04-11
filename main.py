@@ -1,8 +1,6 @@
-# Import potrzebnych bibliotek
 import open3d as o3d
 import numpy as np
 import laspy
-
 
 def las_to_o3d(plik) :
     las_pcd = laspy.read(plik)
@@ -17,36 +15,29 @@ def las_to_o3d(plik) :
     las_points = np.vstack((x,y,z)).transpose()
     las_colors = np.vstack((r,g,b)).transpose()
 
-    chmura_punktow = o3d.geometry.PointCloud()
-    chmura_punktow.points = o3d.utility.Vector3dVector(las_points)
-    chmura_punktow.colors = o3d.utility.Vector3dVector(las_colors)
-    return chmura_punktow
+    point_cloud = o3d.geometry.PointCloud()
+    point_cloud.points = o3d.utility.Vector3dVector(las_points)
+    point_cloud.colors = o3d.utility.Vector3dVector(las_colors)
+    return point_cloud
 
-def wyznaczanie_obserwacji_odstajacych(chmura_punktow, liczba_sasiadow = 1000, std_ratio = 3.0):
-    chmura_punktow_odfiltrowana, ind = chmura_punktow.remove_statistical_outlier(nb_neighbors = liczba_sasiadow, std_ratio = std_ratio)
-    punkty_odstajace = chmura_punktow.select_by_index(ind, invert = True)
-    punkty_odstajace.paint_uniform_color([1, 0, 0])
-    return chmura_punktow_odfiltrowana, punkty_odstajace
+def find_outliers(point_cloud, neighbours = 1000, std_ratio = 3.0):
+    filtered_point_cloud, ind = point_cloud.remove_statistical_outlier(nb_neighbors = neighbours, std_ratio = std_ratio)
+    outliers = point_cloud.select_by_index(ind, invert = True)
+    outliers.paint_uniform_color([1, 0, 0])
+    return filtered_point_cloud, outliers
 
-def regularyzacja_chmur_punktow(chmura_punktow, odleglosc_miedzy_wokselami = 0.1):
-    chmura_punktow_woksele = chmura_punktow.voxel_down_sample(voxel_size = odleglosc_miedzy_wokselami)
-    return chmura_punktow_woksele
-
-def usuwanie_co_ntego(chmura_punktow, n = 10):
-    chmura_punktow_co_nty = chmura_punktow.uniform_down_sample(every_k_points = n)
-    return chmura_punktow_co_nty
 
 if __name__ == "__main__":
-    plik = 'merged.las'
-    chmura_punktow = las_to_o3d(plik)
-    # o3d.visualization.draw_geometries([chmura_punktow], window_name = "Chmura punktów")
+    plik = 'clouds\merged.las'
+    point_cloud = las_to_o3d(plik)
+    o3d.visualization.draw_geometries([point_cloud], window_name = "Point cloud")
 
-    chmura_punktow_odfiltrowana, punkty_odstajace = wyznaczanie_obserwacji_odstajacych(chmura_punktow)
-    # o3d.visualization.draw_geometries([chmura_punktow_odfiltrowana, punkty_odstajace], window_name = "Chmura punktów z obserwacjami odstającymi")
+    filtered_point_cloud, outliers = find_outliers(point_cloud)
+    o3d.visualization.draw_geometries([filtered_point_cloud, outliers], window_name = "Point cloud with outliers")
 
-    chmura_punktow_woksele = regularyzacja_chmur_punktow(chmura_punktow_odfiltrowana, odleglosc_miedzy_wokselami = 0.1)
-    o3d.visualization.draw_geometries([chmura_punktow_woksele], window_name = "Chmura punktów woksele")
+    voxel_point_cloud = filtered_point_cloud.voxel_down_sample(voxel_size = 0.1)
+    o3d.visualization.draw_geometries([voxel_point_cloud], window_name = "Voxelled point cloud")
 
-    # chmura_punktow_co_nty = usuwanie_co_ntego(chmura_punktow, n = 10)
-    # o3d.visualization.draw_geometries([chmura_punktow_co_nty], window_name = "Chmura punktów co n-tego")
+    n_point_cloud = point_cloud.uniform_down_sample(every_k_points = 10)
+    o3d.visualization.draw_geometries([n_point_cloud], window_name = "Point cloud with every n point")
     
